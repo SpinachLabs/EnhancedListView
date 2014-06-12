@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -56,7 +57,8 @@ import java.util.TreeSet;
  */
 public class EnhancedListView extends ListView {
 
-    /**
+
+	/**
      * Defines the style in which <i>undos</i> should be displayed and handled in the list.
      * Pass this to {@link #setUndoStyle(de.timroes.android.listview.EnhancedListView.UndoStyle)}
      * to change the default behavior from {@link #SINGLE_POPUP}.
@@ -308,6 +310,7 @@ public class EnhancedListView extends ListView {
     private int mMinFlingVelocity;
     private int mMaxFlingVelocity;
     private long mAnimationTime;
+	private float mMinimumDismissAlpha;
 
     private final Object[] mAnimationLock = new Object[0];
 
@@ -373,8 +376,11 @@ public class EnhancedListView extends ListView {
             // Skip initializing when in edit mode (IDE preview).
             return;
         }
-        ViewConfiguration vc =ViewConfiguration.get(ctx);
+	    TypedValue typedValue = new TypedValue();
+	    getResources().getValue(R.dimen.elv_min_opacity, typedValue, true);
+	    ViewConfiguration vc =ViewConfiguration.get(ctx);
         mSlop = getResources().getDimension(R.dimen.elv_touch_slop);
+	    mMinimumDismissAlpha = typedValue.getFloat();
 		mMinFlingVelocity = vc.getScaledMinimumFlingVelocity();
         mMaxFlingVelocity = vc.getScaledMaximumFlingVelocity();
         mAnimationTime = ctx.getResources().getInteger(
