@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<string name="elv_undo">Vrátit zpět</string>
+	<string name="elv_undo_all">Vrátit vše</string>
+	<string name="elv_item_deleted">Položka smazána</string>
+	<string name="elv_n_items_deleted">%1$s položek smazáno</string>
+</resources>
