@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +31,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -57,6 +60,9 @@ import java.util.TreeSet;
  */
 public class EnhancedListView extends ListView {
 
+
+	public static final String TAG = EnhancedListView.class.getSimpleName();
+	private boolean mDeletable;
 
 	/**
      * Defines the style in which <i>undos</i> should be displayed and handled in the list.
@@ -689,15 +695,15 @@ public class EnhancedListView extends ListView {
                     int position = getPositionForView(mSwipeDownView) - getHeaderViewsCount();
                     if ((mShouldSwipeCallback == null) ||
                         mShouldSwipeCallback.onShouldSwipe(this, position)) {
-                    mDownX = ev.getRawX();
-                        mDownPosition = position;
-
-                    mVelocityTracker = VelocityTracker.obtain();
-                    mVelocityTracker.addMovement(ev);
-                    } else {
-                        // set back to null to revert swiping
-                        mSwipeDownView = mSwipeDownChild = null;
+                        mDeletable = true;
+                    }else{
+	                    mDeletable = false;
                     }
+	                mDownX = ev.getRawX();
+	                mDownPosition = position;
+
+	                mVelocityTracker = VelocityTracker.obtain();
+	                mVelocityTracker.addMovement(ev);
                 }
                 super.onTouchEvent(ev);
                 return true;
@@ -724,7 +730,8 @@ public class EnhancedListView extends ListView {
                     dismiss = true;
                     dismissRight = mVelocityTracker.getXVelocity() > 0;
                 }
-                if (dismiss) {
+                if (mDeletable && dismiss) {
+	                mDeletable = false;
                     // dismiss
                     slideOutView(mSwipeDownView, mSwipeDownChild, mDownPosition, dismissRight);
                 } else if(mSwiping) {
@@ -778,9 +785,14 @@ public class EnhancedListView extends ListView {
                     deltaX = 0;
                 }
 
+	            if(!mDeletable){
+		            int factor = deltaX < 0 ? -1 : 1;
+		            deltaX = (float)Math.log(Math.abs(deltaX)) * factor;
+	            }
+
                 if (mSwiping) {
                     ViewHelper.setTranslationX(mSwipeDownView, deltaX);
-                    ViewHelper.setAlpha(mSwipeDownView, Math.max(0f, Math.min(1f,
+                    ViewHelper.setAlpha(mSwipeDownView, Math.max(mMinimumDismissAlpha, Math.min(1f,
                             1f - 2f * Math.abs(deltaX) / mViewWidth)));
                     return true;
                 }
@@ -790,7 +802,15 @@ public class EnhancedListView extends ListView {
         return super.onTouchEvent(ev);
     }
 
-    /**
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		if(ev.getAction() == MotionEvent.ACTION_MOVE){
+			return true;
+		}
+		return super.onInterceptTouchEvent(ev);
+	}
+
+	/**
      * Animate the dismissed list item to zero-height and fire the dismiss callback when
      * all dismissed list item animations have completed.
      *
@@ -888,9 +908,11 @@ public class EnhancedListView extends ListView {
      */
     private void changePopupText() {
         String msg = null;
-        if(mUndoActions.size() > 1) {
-            msg = getResources().getString(R.string.elv_n_items_deleted, mUndoActions.size());
-        } else if(mUndoActions.size() >= 1) {
+        if(mUndoActions.size() > 4) {
+            msg = getResources().getString(R.string.elv_n_items_deleted_lot, mUndoActions.size());
+        }else if(mUndoActions.size() > 1){
+	        msg = getResources().getString(R.string.elv_n_items_deleted_two, mUndoActions.size());
+        }else if(mUndoActions.size() >= 1) {
             // Set title from single undoable or when no multiple deletion string
             // is given
             msg = mUndoActions.get(mUndoActions.size() - 1).getTitle();

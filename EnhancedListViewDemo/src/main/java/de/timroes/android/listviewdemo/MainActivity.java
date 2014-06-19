@@ -103,6 +103,8 @@ public class MainActivity extends ActionBarActivity {
         });
         swipeToDismiss.setChecked(getPreferences(MODE_PRIVATE).getBoolean(PREF_SWIPE_TO_DISMISS, false));
 
+
+
         CheckBox swipeLayout = (CheckBox) findViewById(R.id.pref_swipelayout);
         swipeLayout.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -163,6 +165,13 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
+
+	    mListView.setShouldSwipeCallback(new EnhancedListView.OnShouldSwipeCallback() {
+		    @Override
+		    public boolean onShouldSwipe(EnhancedListView listView, int position) {
+			    return position % 2 == 0;
+		    }
+	    });
 
         mListView.setSwipingLayout(R.id.swiping_layout);
 
