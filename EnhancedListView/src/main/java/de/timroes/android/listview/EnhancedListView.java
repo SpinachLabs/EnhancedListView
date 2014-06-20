@@ -325,6 +325,7 @@ public class EnhancedListView extends ListView {
     private OnDismissCallback mDismissCallback;
     private OnShouldSwipeCallback mShouldSwipeCallback;
     private UndoStyle mUndoStyle = UndoStyle.SINGLE_POPUP;
+	private ISwipeStateCallback mSwipeStateCallback;
     private boolean mTouchBeforeAutoHide = true;
     private SwipeDirection mSwipeDirection = SwipeDirection.BOTH;
     private int mUndoHideDelay = 5000;
@@ -653,6 +654,8 @@ public class EnhancedListView extends ListView {
             mViewWidth = getWidth();
         }
 
+
+
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 if (mSwipePaused) {
@@ -734,13 +737,36 @@ public class EnhancedListView extends ListView {
 	                mDeletable = false;
                     // dismiss
                     slideOutView(mSwipeDownView, mSwipeDownChild, mDownPosition, dismissRight);
+	                notifySwipeCallback(ISwipeStateCallback.SwipeState.IDLE, deltaX/mSwipeDownView.getWidth(), mSwipeDownView);
+
                 } else if(mSwiping) {
                     // Swipe back to regular position
-                    ViewPropertyAnimator.animate(mSwipeDownView)
+	                notifySwipeCallback(ISwipeStateCallback.SwipeState.SETTLING, deltaX/mSwipeDownView.getWidth(), mSwipeDownView);
+	                ViewPropertyAnimator.animate(mSwipeDownView)
                             .translationX(0)
                             .alpha(1)
                             .setDuration(mAnimationTime)
-                            .setListener(null);
+                            .setListener(new Animator.AnimatorListener() {
+	                            @Override
+	                            public void onAnimationStart(Animator animator) {
+
+	                            }
+
+	                            @Override
+	                            public void onAnimationEnd(Animator animator) {
+		                            notifySwipeCallback(ISwipeStateCallback.SwipeState.IDLE, 0, mSwipeDownView);
+	                            }
+
+	                            @Override
+	                            public void onAnimationCancel(Animator animator) {
+		                            notifySwipeCallback(ISwipeStateCallback.SwipeState.IDLE, 0, mSwipeDownView);
+	                            }
+
+	                            @Override
+	                            public void onAnimationRepeat(Animator animator) {
+
+	                            }
+                            });
                 }
                 mVelocityTracker = null;
                 mDownX = 0;
@@ -791,7 +817,8 @@ public class EnhancedListView extends ListView {
 	            }
 
                 if (mSwiping) {
-                    ViewHelper.setTranslationX(mSwipeDownView, deltaX);
+	                notifySwipeCallback(ISwipeStateCallback.SwipeState.SWIPING, deltaX/mSwipeDownView.getWidth(), mSwipeDownView);
+	                ViewHelper.setTranslationX(mSwipeDownView, deltaX);
                     ViewHelper.setAlpha(mSwipeDownView, Math.max(mMinimumDismissAlpha, Math.min(1f,
                             1f - 2f * Math.abs(deltaX) / mViewWidth)));
                     return true;
@@ -802,6 +829,12 @@ public class EnhancedListView extends ListView {
         return super.onTouchEvent(ev);
     }
 
+	private void notifySwipeCallback(ISwipeStateCallback.SwipeState state, float v, View swipeDownView) {
+		if(mSwipeStateCallback != null){
+			mSwipeStateCallback.onSwipeStateChanged(state, v, swipeDownView);
+		}
+	}
+
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		if(ev.getAction() == MotionEvent.ACTION_MOVE){
@@ -809,6 +842,8 @@ public class EnhancedListView extends ListView {
 		}
 		return super.onInterceptTouchEvent(ev);
 	}
+
+
 
 	/**
      * Animate the dismissed list item to zero-height and fire the dismiss callback when
@@ -901,7 +936,16 @@ public class EnhancedListView extends ListView {
         animator.start();
     }
 
-    /**
+
+	public void unregisterSwipeStateCallback() {
+		mSwipeStateCallback = null;
+	}
+
+	public void registerSwipeStateCallback(ISwipeStateCallback swipeStateCallback) {
+		mSwipeStateCallback = swipeStateCallback;
+	}
+
+	/**
      * Changes the text of the undo popup. If more then one item can be undone, the number of deleted
      * items will be shown. If only one deletion can be undone, the title of this deletion (or a default
      * string in case the title is {@code null}) will be shown.
@@ -993,5 +1037,21 @@ public class EnhancedListView extends ListView {
 		if(visibility != View.VISIBLE) {
 			discardUndo();
 		}
+	}
+
+	public interface ISwipeStateCallback{
+
+		public enum SwipeState{
+			SWIPING, SETTLING, IDLE
+		}
+
+		/**
+		 *
+		 * @param state ISwipeStateCallback.SwipeState which indicates the current state of swipe to dismiss
+		 * @param progress Progress from -1;0;1 which indicates how far the user had swiped. Negative is while swiping to left, positive while swiping to right
+		 * @param swipingView the view which is currently swiped
+		 */
+		public void onSwipeStateChanged(SwipeState state, float progress, View swipingView);
+
 	}
 }
