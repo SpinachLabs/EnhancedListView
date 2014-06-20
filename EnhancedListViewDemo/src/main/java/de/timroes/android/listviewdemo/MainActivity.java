@@ -42,7 +42,9 @@ import de.timroes.android.listview.EnhancedListView;
 
 public class MainActivity extends ActionBarActivity {
 
-    private enum ControlGroup {
+	private EnhancedListView.ISwipeStateCallback.SwipeState mState;
+
+	private enum ControlGroup {
 		SWIPE_TO_DISMISS
     }
 
@@ -174,7 +176,26 @@ public class MainActivity extends ActionBarActivity {
 	    });
 
         mListView.setSwipingLayout(R.id.swiping_layout);
+		mListView.registerSwipeStateCallback(new EnhancedListView.ISwipeStateCallback() {
+			@Override
+			public void onSwipeStateChanged(SwipeState state, float progress, View swipingView) {
+				if(mState != state){
+					mState = state;
+					switch(state){
+						case IDLE:
+							Toast.makeText(getApplicationContext(), "IDLE", Toast.LENGTH_SHORT).show();
+							break;
+						case SETTLING:
+							Toast.makeText(getApplicationContext(), "SETTLING", Toast.LENGTH_SHORT).show();
+							break;
+						case SWIPING:
+							Toast.makeText(getApplicationContext(), "SWIPING", Toast.LENGTH_SHORT).show();
+							break;
+					}
+				}
 
+			}
+		});
         applySettings();
 
     }
@@ -237,6 +258,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onStop() {
         if(mListView != null) {
             mListView.discardUndo();
+	        mListView.unregisterSwipeStateCallback();
         }
         super.onStop();
     }

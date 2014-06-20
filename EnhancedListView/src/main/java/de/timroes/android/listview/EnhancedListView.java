@@ -1042,7 +1042,7 @@ public class EnhancedListView extends ListView {
 	public interface ISwipeStateCallback{
 
 		public enum SwipeState{
-			SWIPING, SETTLING, IDLE
+			SWIPING, SETTLING, mState, IDLE
 		}
 
 		/**
