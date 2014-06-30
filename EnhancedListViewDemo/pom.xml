@@ -6,7 +6,7 @@
 		<groupId>de.timroes.android</groupId>
 		<artifactId>android-enhanced-listview-parent</artifactId>
 		<relativePath>../pom.xml</relativePath>
-		<version>0.3.3-imt</version>
+		<version>0.3.4-imt-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>android-enhanced-listview-demo</artifactId>

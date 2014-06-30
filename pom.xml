@@ -28,7 +28,7 @@
 	<groupId>de.timroes.android</groupId>
 	<artifactId>android-enhanced-listview-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.3.3-imt</version>
+	<version>0.3.4-imt-SNAPSHOT</version>
 
 	<name>EnhancedListView</name>
 	<description>An Android ListView with enhanced functionality (e.g. Swipe To Dismiss or Undo)</description>
@@ -46,7 +46,7 @@
 		<connection>scm:git:https://github.com/inmite/EnhancedListView.git</connection>
 		<developerConnection>scm:git:https://github.com/inmite/EnhancedListView.git</developerConnection>
 		<url>https://github.com/inmite/EnhancedListView</url>
-	  <tag>android-enhanced-listview-parent-0.3.3-imt</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<issueManagement>
